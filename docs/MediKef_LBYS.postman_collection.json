@@ -1,0 +1,326 @@
+{
+  "info": {
+    "name": "MediKef LBYS API",
+    "description": "Laboratuvar Bilgi Yönetim Sistemi - LisBox Entegrasyonu API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "medikef-team"
+  },
+  "item": [
+    {
+      "name": "LisBox Integration",
+      "item": [
+        {
+          "name": "Receive Test Results",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "LISBOX_SECRET_KEY_2024",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"DeviceId\": \"COBAS_C311_01\",\n  \"SampleBarcode\": \"BAR2024001\",\n  \"TestResults\": [\n    {\n      \"TestCode\": \"GLU\",\n      \"TestName\": \"Glukoz\",\n      \"ResultValue\": \"95\",\n      \"ResultNumeric\": 95.0,\n      \"Unit\": \"mg/dL\",\n      \"ReferenceRange\": \"70-110\",\n      \"Flag\": \"N\",\n      \"ResultDateTime\": \"2024-12-28T10:30:00Z\"\n    },\n    {\n      \"TestCode\": \"CREA\",\n      \"TestName\": \"Kreatinin\",\n      \"ResultValue\": \"0.9\",\n      \"ResultNumeric\": 0.9,\n      \"Unit\": \"mg/dL\",\n      \"ReferenceRange\": \"0.7-1.3\",\n      \"Flag\": \"N\",\n      \"ResultDateTime\": \"2024-12-28T10:30:00Z\"\n    }\n  ],\n  \"Status\": \"Final\",\n  \"Timestamp\": \"2024-12-28T10:30:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/LisBox/receive-results",
+              "host": ["{{baseUrl}}"],
+              "path": ["LisBox", "receive-results"]
+            },
+            "description": "LisBox middleware'den cihaz test sonuçlarını alır"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Patients",
+      "item": [
+        {
+          "name": "Get All Patients",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Patients",
+              "host": ["{{baseUrl}}"],
+              "path": ["Patients"]
+            }
+          }
+        },
+        {
+          "name": "Search Patients",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Patients?search=Ahmet",
+              "host": ["{{baseUrl}}"],
+              "path": ["Patients"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "Ahmet"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Patient by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Patients/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["Patients", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tcNo\": \"98765432109\",\n  \"firstName\": \"Ayşe\",\n  \"lastName\": \"Demir\",\n  \"birthDate\": \"1990-08-20\",\n  \"gender\": \"F\",\n  \"phone\": \"05559876543\",\n  \"email\": \"ayse.demir@example.com\",\n  \"address\": \"Ankara, Türkiye\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Patients",
+              "host": ["{{baseUrl}}"],
+              "path": ["Patients"]
+            }
+          }
+        },
+        {
+          "name": "Update Patient",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tcNo\": \"98765432109\",\n  \"firstName\": \"Ayşe\",\n  \"lastName\": \"Demir\",\n  \"birthDate\": \"1990-08-20\",\n  \"gender\": \"F\",\n  \"phone\": \"05559999999\",\n  \"email\": \"ayse.demir.new@example.com\",\n  \"address\": \"İzmir, Türkiye\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Patients/6",
+              "host": ["{{baseUrl}}"],
+              "path": ["Patients", "6"]
+            }
+          }
+        },
+        {
+          "name": "Delete Patient",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Patients/6",
+              "host": ["{{baseUrl}}"],
+              "path": ["Patients", "6"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Samples",
+      "item": [
+        {
+          "name": "Get All Samples",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Samples",
+              "host": ["{{baseUrl}}"],
+              "path": ["Samples"]
+            }
+          }
+        },
+        {
+          "name": "Filter Samples by Patient",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Samples?patientId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["Samples"],
+              "query": [
+                {
+                  "key": "patientId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter Samples by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Samples?status=Pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["Samples"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "Pending"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Sample by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Samples/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["Samples", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Sample",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": 1,\n  \"sampleType\": \"Serum\",\n  \"collectionDate\": \"2024-12-28T09:00:00Z\",\n  \"priority\": \"Urgent\",\n  \"notes\": \"Açlık testi\",\n  \"testIds\": [1, 2, 3, 4, 5]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/Samples",
+              "host": ["{{baseUrl}}"],
+              "path": ["Samples"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tests",
+      "item": [
+        {
+          "name": "Get All Tests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Tests",
+              "host": ["{{baseUrl}}"],
+              "path": ["Tests"]
+            }
+          }
+        },
+        {
+          "name": "Filter Tests by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Tests?category=Biyokimya",
+              "host": ["{{baseUrl}}"],
+              "path": ["Tests"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Biyokimya"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Test Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Tests/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["Tests", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get Test by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Tests/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["Tests", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Devices",
+      "item": [
+        {
+          "name": "Get All Devices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Devices",
+              "host": ["{{baseUrl}}"],
+              "path": ["Devices"]
+            }
+          }
+        },
+        {
+          "name": "Get Device by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/Devices/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["Devices", "1"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5218/api",
+      "type": "string"
+    }
+  ]
+}
+
