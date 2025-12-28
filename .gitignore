@@ -1,0 +1,45 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.exe
+*.pdb
+*.log
+.vs/
+.vscode/
+*.DotSettings.user
+
+# Angular
+node_modules/
+dist/
+.angular/
+*.ngfactory.ts
+*.ngsummary.json
+*.metadata.json
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+appsettings.Development.json
+appsettings.Local.json
+
+# Docker
+docker-compose.override.yml
+

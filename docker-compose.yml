@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: medikef-postgres
+    environment:
+      POSTGRES_DB: medikef_db
+      POSTGRES_USER: medikef_user
+      POSTGRES_PASSWORD: medikef_pass_2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - medikef-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medikef_user -d medikef_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./src/Backend
+      dockerfile: Dockerfile
+    container_name: medikef-backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=medikef_db;Username=medikef_user;Password=medikef_pass_2024
+      - LisBox__ApiKey=LISBOX_SECRET_KEY_2024
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - medikef-network
+    restart: unless-stopped
+
+  # Frontend Angular
+  frontend:
+    build:
+      context: ./src/Frontend
+      dockerfile: Dockerfile
+    container_name: medikef-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - medikef-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  medikef-network:
+    driver: bridge
+
