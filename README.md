@@ -4,19 +4,24 @@
 
 ## 📚 Dokümantasyon
 
-Proje için kapsamlı dokümantasyon hazırlanmıştır:
+Proje için **3500+ satır** kapsamlı dokümantasyon hazırlanmıştır. Tüm dokümanlar için **[📚 Doküman İndeksi](docs/INDEX.md)**'ne bakınız.
 
 ### 📖 Ana Dokümanlar
-- **[📋 Analiz Dokümanı](docs/ANALIZ_DOKUMANI.md)** - Kapsamlı sistem analizi ve tasarım dokümanı (1000+ satır)
-- **[🏗️ Teknik Mimari](docs/TEKNIK_MIMARI.md)** - Sistem mimarisi, veri akış diyagramları ve ERD
-- **[🔌 API Endpoints](docs/API_ENDPOINTS.md)** - Tüm API endpoint'lerinin detaylı dokümantasyonu
-- **[🧪 Test Senaryoları](docs/TEST_SENARYOLARI.md)** - Unit, integration, E2E ve güvenlik testleri
-- **[🚀 Kurulum ve Deployment](docs/KURULUM_VE_DEPLOYMENT.md)** - Development ve production kurulum rehberi
+- **[� Proje Özeti](docs/PROJE_OZETI.md)** - Projeye genel bakış, iş modeli ve hedefler (15 dk)
+- **[�📋 Analiz Dokümanı](docs/ANALIZ_DOKUMANI.md)** - Kapsamlı sistem analizi ve tasarım (1070 satır, 60-90 dk)
+- **[🏗️ Teknik Mimari](docs/TEKNIK_MIMARI.md)** - Sistem mimarisi, veri akış diyagramları ve ERD (20-30 dk)
+- **[🔌 API Endpoints](docs/API_ENDPOINTS.md)** - Tüm API endpoint'lerinin detaylı dokümantasyonu (30-40 dk)
+- **[🧪 Test Senaryoları](docs/TEST_SENARYOLARI.md)** - Unit, integration, E2E ve güvenlik testleri (40-50 dk)
+- **[🚀 Kurulum ve Deployment](docs/KURULUM_VE_DEPLOYMENT.md)** - Development ve production kurulum rehberi (45-60 dk)
 
 ### 🔧 Teknik Dokümanlar
 - **[Postman Collection](docs/MediKef_LBYS.postman_collection.json)** - API test koleksiyonu
 - **[Database Schema](database/schema.sql)** - PostgreSQL veritabanı şeması
 - **[Seed Data](database/seed-data.sql)** - Demo veriler
+
+### 🎯 Hızlı Başlangıç İçin
+Projeye yeni başlıyorsanız, dokümanları şu sırayla okuyun:
+1. [Proje Özeti](docs/PROJE_OZETI.md) → 2. [Teknik Mimari](docs/TEKNIK_MIMARI.md) → 3. [Kurulum](docs/KURULUM_VE_DEPLOYMENT.md) → 4. [API Endpoints](docs/API_ENDPOINTS.md)
 
 ---
 
