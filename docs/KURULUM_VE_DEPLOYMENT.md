@@ -272,4 +272,406 @@ Copy-Item -Path ".\dist\medikef-web\*" -Destination "C:\inetpub\wwwroot\medikef-
 </configuration>
 ```
 
+### 3.4 Linux Deployment (Ubuntu Server)
+
+#### 3.4.1 Nginx + Kestrel
+
+```bash
+# .NET Runtime kur
+wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+sudo apt update
+sudo apt install -y aspnetcore-runtime-9.0
+
+# Nginx kur
+sudo apt install -y nginx
+
+# Backend dosyalarını kopyala
+sudo mkdir -p /var/www/medikef-api
+sudo cp -r ./publish/* /var/www/medikef-api/
+
+# Systemd service oluştur
+sudo nano /etc/systemd/system/medikef-api.service
+```
+
+**/etc/systemd/system/medikef-api.service:**
+```ini
+[Unit]
+Description=MediKef LBYS API
+After=network.target
+
+[Service]
+WorkingDirectory=/var/www/medikef-api
+ExecStart=/usr/bin/dotnet /var/www/medikef-api/MediKef.Api.dll
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=medikef-api
+User=www-data
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+# Service'i başlat
+sudo systemctl enable medikef-api
+sudo systemctl start medikef-api
+sudo systemctl status medikef-api
+
+# Nginx konfigürasyonu
+sudo nano /etc/nginx/sites-available/medikef-api
+```
+
+**/etc/nginx/sites-available/medikef-api:**
+```nginx
+server {
+    listen 80;
+    server_name api.medikef.com;
+
+    location / {
+        proxy_pass http://localhost:5218;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection keep-alive;
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+```bash
+# Nginx konfigürasyonunu aktifleştir
+sudo ln -s /etc/nginx/sites-available/medikef-api /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+#### 3.4.2 SSL/TLS (Let's Encrypt)
+
+```bash
+# Certbot kur
+sudo apt install -y certbot python3-certbot-nginx
+
+# SSL sertifikası al
+sudo certbot --nginx -d api.medikef.com -d medikef.com
+
+# Otomatik yenileme
+sudo certbot renew --dry-run
+```
+
+---
+
+## 4. Docker Deployment
+
+### 4.1 Dockerfile (Backend)
+
+**src/Backend/MediKef.Api/Dockerfile:**
+```dockerfile
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+COPY ["MediKef.Api/MediKef.Api.csproj", "MediKef.Api/"]
+RUN dotnet restore "MediKef.Api/MediKef.Api.csproj"
+COPY . .
+WORKDIR "/src/MediKef.Api"
+RUN dotnet build "MediKef.Api.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "MediKef.Api.csproj" -c Release -o /app/publish
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "MediKef.Api.dll"]
+```
+
+### 4.2 Dockerfile (Frontend)
+
+**src/Frontend/medikef-web/Dockerfile:**
+```dockerfile
+# Stage 1: Build
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build -- --configuration production
+
+# Stage 2: Serve with Nginx
+FROM nginx:alpine
+COPY --from=build /app/dist/medikef-web /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+**nginx.conf:**
+```nginx
+server {
+    listen 80;
+    server_name localhost;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api {
+        proxy_pass http://backend:80;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+### 4.3 Docker Compose (Full Stack)
+
+**docker-compose.production.yml:**
+```yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: medikef-postgres
+    environment:
+      POSTGRES_DB: medikef_db
+      POSTGRES_USER: medikef_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/seed-data.sql:/docker-entrypoint-initdb.d/02-seed-data.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - medikef-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./src/Backend
+      dockerfile: MediKef.Api/Dockerfile
+    container_name: medikef-backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=postgres;Database=medikef_db;Username=medikef_user;Password=${DB_PASSWORD}"
+      LisBox__ApiKey: ${LISBOX_API_KEY}
+    ports:
+      - "5218:80"
+    depends_on:
+      - postgres
+    networks:
+      - medikef-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./src/Frontend/medikef-web
+      dockerfile: Dockerfile
+    container_name: medikef-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - medikef-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  medikef-network:
+    driver: bridge
+```
+
+**.env:**
+```env
+DB_PASSWORD=your_secure_password_here
+LISBOX_API_KEY=your_lisbox_api_key_here
+```
+
+### 4.4 Docker Deployment Komutları
+
+```bash
+# Build ve başlat
+docker-compose -f docker-compose.production.yml up -d --build
+
+# Logları izle
+docker-compose -f docker-compose.production.yml logs -f
+
+# Durdur
+docker-compose -f docker-compose.production.yml down
+
+# Veritabanı dahil tamamen temizle
+docker-compose -f docker-compose.production.yml down -v
+```
+
+---
+
+## 5. Veritabanı Yönetimi
+
+### 5.1 Migration Oluşturma
+
+```bash
+cd src/Backend/MediKef.Api
+
+# Yeni migration oluştur
+dotnet ef migrations add MigrationName
+
+# Migration'ı uygula
+dotnet ef database update
+
+# Migration'ı geri al
+dotnet ef database update PreviousMigrationName
+
+# Migration'ı sil
+dotnet ef migrations remove
+```
+
+### 5.2 Backup ve Restore
+
+#### Backup
+```bash
+# PostgreSQL backup
+pg_dump -h localhost -U medikef_user -d medikef_db -F c -b -v -f medikef_backup_$(date +%Y%m%d).dump
+
+# SQL formatında backup
+pg_dump -h localhost -U medikef_user -d medikef_db > medikef_backup_$(date +%Y%m%d).sql
+```
+
+#### Restore
+```bash
+# Custom format restore
+pg_restore -h localhost -U medikef_user -d medikef_db -v medikef_backup_20241228.dump
+
+# SQL format restore
+psql -h localhost -U medikef_user -d medikef_db < medikef_backup_20241228.sql
+```
+
+### 5.3 Otomatik Backup (Cron Job)
+
+```bash
+# Crontab düzenle
+crontab -e
+
+# Her gün saat 02:00'de backup al
+0 2 * * * /usr/bin/pg_dump -h localhost -U medikef_user -d medikef_db -F c -b -v -f /backups/medikef_backup_$(date +\%Y\%m\%d).dump
+
+# Eski backupları sil (30 günden eski)
+0 3 * * * find /backups -name "medikef_backup_*.dump" -mtime +30 -delete
+```
+
+---
+
+## 6. Monitoring ve Logging
+
+### 6.1 Application Logging (Serilog)
+
+**appsettings.Production.json:**
+```json
+{
+  "Serilog": {
+    "Using": ["Serilog.Sinks.Console", "Serilog.Sinks.File"],
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Warning",
+        "System": "Warning"
+      }
+    },
+    "WriteTo": [
+      {
+        "Name": "Console"
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "path": "/var/log/medikef/api-.log",
+          "rollingInterval": "Day",
+          "retainedFileCountLimit": 30,
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
+        }
+      }
+    ]
+  }
+}
+```
+
+### 6.2 Health Checks
+
+**Program.cs:**
+```csharp
+builder.Services.AddHealthChecks()
+    .AddNpgSql(connectionString, name: "database");
+
+app.MapHealthChecks("/health");
+```
+
+**Kullanım:**
+```bash
+curl http://localhost:5218/health
+# Response: Healthy
+```
+
+### 6.3 Prometheus Metrics (Planned)
+
+```bash
+# Prometheus endpoint
+GET /metrics
+
+# Örnek metrikler:
+# - http_requests_total
+# - http_request_duration_seconds
+# - database_connections_active
+# - lisbox_results_received_total
+```
+
+---
+
+## 📊 Deployment Checklist
+
+### Pre-Deployment
+- [ ] Tüm testler başarılı
+- [ ] Code review tamamlandı
+- [ ] Security scan yapıldı
+- [ ] Database migration hazır
+- [ ] Backup alındı
+- [ ] Rollback planı hazır
+
+### Deployment
+- [ ] Production build oluşturuldu
+- [ ] Environment variables ayarlandı
+- [ ] Database migration uygulandı
+- [ ] Application deploy edildi
+- [ ] Health check başarılı
+- [ ] Smoke test yapıldı
+
+### Post-Deployment
+- [ ] Monitoring aktif
+- [ ] Logging çalışıyor
+- [ ] Performance metrikleri normal
+- [ ] Error rate normal
+- [ ] Kullanıcı bildirimi yapıldı
+- [ ] Dokümantasyon güncellendi
+
+---
+
+**Doküman Versiyonu:** 1.0
+**Son Güncelleme:** 28 Aralık 2024
+**Hazırlayan:** MediKef Development Team
 
