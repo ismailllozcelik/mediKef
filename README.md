@@ -1,6 +1,24 @@
-# MediKef - Laboratuvar Bilgi Yönetim Sistemi (LBYS)
+# 🏥 MediKef - Laboratuvar Bilgi Yönetim Sistemi (LBYS)
 
 **Infomed tarzı modern LBYS uygulaması** - LisBox middleware entegrasyonu ile cihazlardan otomatik test sonucu alma.
+
+## 📚 Dokümantasyon
+
+Proje için kapsamlı dokümantasyon hazırlanmıştır:
+
+### 📖 Ana Dokümanlar
+- **[📋 Analiz Dokümanı](docs/ANALIZ_DOKUMANI.md)** - Kapsamlı sistem analizi ve tasarım dokümanı (1000+ satır)
+- **[🏗️ Teknik Mimari](docs/TEKNIK_MIMARI.md)** - Sistem mimarisi, veri akış diyagramları ve ERD
+- **[🔌 API Endpoints](docs/API_ENDPOINTS.md)** - Tüm API endpoint'lerinin detaylı dokümantasyonu
+- **[🧪 Test Senaryoları](docs/TEST_SENARYOLARI.md)** - Unit, integration, E2E ve güvenlik testleri
+- **[🚀 Kurulum ve Deployment](docs/KURULUM_VE_DEPLOYMENT.md)** - Development ve production kurulum rehberi
+
+### 🔧 Teknik Dokümanlar
+- **[Postman Collection](docs/MediKef_LBYS.postman_collection.json)** - API test koleksiyonu
+- **[Database Schema](database/schema.sql)** - PostgreSQL veritabanı şeması
+- **[Seed Data](database/seed-data.sql)** - Demo veriler
+
+---
 
 ## 🏗️ Mimari
 
